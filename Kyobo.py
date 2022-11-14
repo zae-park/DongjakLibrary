@@ -1,19 +1,58 @@
+import re
 import requests
 from bs4 import BeautifulSoup
+from selenium import webdriver
+import chromedriver_autoinstaller
 
-country = ['KOR', 'ENG']
+country_dict = {'kor': 'https://product.kyobobook.co.kr/KOR',
+                'eng': 'https://product.kyobobook.co.kr/ENG'}
 
 
-kor = 'https://product.kyobobook.co.kr/KOR'
-eng = 'https://product.kyobobook.co.kr/ENG'
 
 
-def get_kyobo():
-  html = requests.get(kor)
-  soup = BeautifulSoup(html.text, 'html.parser')
+def check_chrome_version():
   
-  suboptions = soup.select('body > div.wrapper > main > section#contents > div > aside > div.aside_body > div.snb_wrap > ul > li > a')
-  print(suboptions)
+  chrome_ver = chromedriver_autoinstaller.get_chrome_version().split('.')[0]  #크롬드라이버 버전 확인
+  try:
+      driver = webdriver.Chrome(f'./{chrome_ver}/chromedriver.exe')   
+  except:
+      chromedriver_autoinstaller.install(True)
+      driver = webdriver.Chrome(f'./{chrome_ver}/chromedriver.exe')
+
+  driver.implicitly_wait(10)
+
+
+def get_suboptions():
+  
+  suboptions_dict = {}
+  for k, v in country_dict.items():
+    html = requests.get(v)
+    soup = BeautifulSoup(html.text, 'html.parser')
+    suboptions = soup.select('div.aside_body > div.snb_wrap > ul > li > a')
+    
+    for suboption in suboptions:
+      subname = suboption.text.strip()
+      print(f'getting {k}: {subname}...')
+      suboptions_dict[subname] = suboption.get('href')
+    
+  return suboptions_dict
+  
+
+def get_books(url):
+  
+  options = webdriver.ChromeOptions()
+  options.add_argument("headless")
+  
+  driver = webdriver.Chrome('chromedriver.exe', options=options)
+  driver.get(url + '#homeTabAll')
+  selector = 'div.list_result_wrap > div.right_area > div:nth-child(2) > button'
+  element = driver.find_element_by_css_selector(selector)
+  element.click()
+  
+  time.sleep(30)  # 다운로드 위해 기다리기 
+  
+  driver.quit()
+  # TODO - https://swlock.blogspot.com/2022/05/python-selenium-chrome-driver.html
   
 
 def extract_job(root, html):
@@ -51,4 +90,13 @@ def get_jobs(word):
 
 
 if __name__ == '__main__':
-  get_kyobo()
+  check_chrome_version()
+  
+  res = get_suboptions()
+  for k, v in res.items():
+    tabs = get_books(v)
+    break
+  
+  print('done')
+  
+  
