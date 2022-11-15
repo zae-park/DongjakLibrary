@@ -1,12 +1,74 @@
-import re
+import os
+import time
 import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
 import chromedriver_autoinstaller
 
 country_dict = {'kor': 'https://product.kyobobook.co.kr/KOR',
                 'eng': 'https://product.kyobobook.co.kr/ENG'}
 
+
+class Kyobo:
+  def __init__(self, download_path: str = './crawler') -> None:
+    self.sele_options = None
+    self.download_path = download_path
+  
+  def init_selenium(self):
+    self.sele_options = webdriver.ChromeOptions()
+    self.sele_options.add_argument("headless")
+    prefs = {"download.default_directory": {"download.default_directory": os.path.abspath(self.download_path)}}
+    self.sele_options.add_experimental_option("prefs", prefs)
+		
+
+  def check_chrome_version():
+  
+    chrome_ver = chromedriver_autoinstaller.get_chrome_version().split('.')[0]  # check chrome version (major version is all we need)
+    try:
+        driver = webdriver.Chrome(f'./{chrome_ver}/chromedriver.exe')   
+    except:
+        chromedriver_autoinstaller.install(True)
+        driver = webdriver.Chrome(f'./{chrome_ver}/chromedriver.exe')
+
+    driver.implicitly_wait(10)
+
+  def download_wait(self, download_root: str, timeout: int = 60):
+    assert os.path.isdir(download_root), f'Cannot find download directory -> {download_root}'
+
+    browser=webdriver.Chrome('chromedriver')
+    browser.get("C:/Users/selenium_waits.html")
+
+    waiter = WebDriverWait(browser, timeouts=60).until(self.is_downloaded)
+
+    p_tag = WebDriverWait(browser,timeout=5).until(EC.presence_of_element_located((By.TAG_NAME, "p")))
+    print("p태그를 찾았습니다.")
+
+    if self.download_path==None:
+      print("error can not find download path")
+      return -2
+    path_to_downloads = self.download_path
+    seconds = 0
+    WAIT = True
+    sum_after = 0
+
+    while WAIT and seconds < timeout:
+      time.sleep(5)
+      dl_wait = False
+      sum_before = sum_after
+      sum_after = 0
+      for fname in os.listdir(path_to_downloads):
+        if fname.endswith('.crdownload'):
+          sum_after += os.stat(path_to_downloads+'/'+fname).st_size
+          WAIT = True
+      if WAIT and seconds > 10 and sum_before == sum_after:
+        print("download timeout")
+        WAIT = False
+        return -1
+      seconds += 5
+    return seconds
 
 
 
@@ -34,7 +96,8 @@ def get_suboptions():
       subname = suboption.text.strip()
       print(f'getting {k}: {subname}...')
       suboptions_dict[subname] = suboption.get('href')
-    
+  
+  print(f'Collect {len(suboptions_dict)} suboptions...')
   return suboptions_dict
   
 
