@@ -71,17 +71,20 @@ class Kyobo:
       mainpages = driver.find_elements(By.CSS_SELECTOR, mainpages)
 
       for mainpage in mainpages:
+        time.sleep(1) # wait
         main_name = mainpage.text
         mainpage.send_keys(Keys.ENTER)
 
         fold_btn = '#tabAnbCategorySub01 > div.custom_scroll_wrap > div.simplebar-wrapper > div.simplebar-mask > div > div > div > div > div.category_view_area > div > div:nth-child(1) > ul > li:nth-child(1) > div.fold_box_header > button'
         fold_btn = driver.find_element(By.CSS_SELECTOR, fold_btn)
         fold_btn.send_keys(Keys.ENTER)
+        time.sleep(1) # wait
       
         subpages = '#tabAnbCategorySub01 > div.custom_scroll_wrap.active > div.simplebar-wrapper > div.simplebar-mask > div > div > div > div > div.category_view_area > div > div:nth-child(1) > ul > li.fold_box.expanded > div.fold_box_contents > ul > li'
         subpages = driver.find_elements(By.CSS_SELECTOR, subpages)
 
         for subpage in subpages:
+          time.sleep(1) # wait
           subpage_name = subpage.text
           subpage_url = subpage.find_element(By.TAG_NAME, 'a').get_attribute('href')
           driver.get(subpage_url)
@@ -89,12 +92,10 @@ class Kyobo:
 
           details = '#contents > div > aside > div.aside_body > div.snb_wrap > ul > li'
           details = driver.find_elements(By.CSS_SELECTOR, details)
+          detail_urls = {u.text: u.get_attribute('href') for u in driver.find_elements(By.CLASS_NAME, 'snb_link')}
 
-          for detail in details:
-            detail_name = detail.text
-            detail_url = detail.find_element(By.TAG_NAME, 'a').get_attribute('href')
+          for detail_name, detail_url in detail_urls.items():
             driver.get(detail_url)
-            # detail.send_keys(Keys.ENTER)
             time.sleep(3) # wait
 
             selector = '#homeTabAll > div.list_result_wrap > div.right_area > div:nth-child(2) > button'
@@ -103,13 +104,19 @@ class Kyobo:
             # -------------------------------------------------------------------------------------------------------------------
             
             print(f'\tCrawl... {main_name} - {subpage_name} - {detail_name}')
-            try:
-              btn = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="homeTabAll"]/div[2]/div[2]/div[2]/button')))
-              btn.click()
-            except Exception as e:
-              print("error: ", e)
+
+            excel_btn = '#homeTabAll > div.list_result_wrap > div.right_area > div:nth-child(2) > button'
+            excel_btn = driver.find_element(By.CSS_SELECTOR, excel_btn)
+            # driver.execute_script(excel_btn.script[0])
+            excel_btn.click()
+
+            # try:
+            #   btn = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="homeTabAll"]/div[2]/div[2]/div[2]/button')))
+            #   btn.click()
+            # except Exception as e:
+            #   print("error: ", e)
               
-            time.sleep(10)  # Waiting for download.
+            time.sleep(3)  # Waiting for download.
     else:
       raise AssertionError
 
