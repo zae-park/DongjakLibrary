@@ -19,12 +19,14 @@ class Kyobo:
     self.defualt_download = os.path.join(os.path.expanduser('~'), 'downloads')
     self.download_path = download_path
     self.check_dummy_file()
-    self.check_dummy_file(self.download_path) if os.path.isdir(self.download_path) else os.mkdir(self.download_path)
+    self.check_dummy_file(self.download_path, '*.xlsx') if os.path.isdir(self.download_path) else os.mkdir(self.download_path)
 
-  def check_dummy_file(self, root: str = None):
+  def check_dummy_file(self, root: str = None, stereo: str = None):
     if root is None:
       root = self.defualt_download
-    bag = glob.glob(os.path.join(self.defualt_download, '상품목록*.xlsx'))
+    if stereo is None:
+      stereo = '상품목록*.xlsx'
+    bag = glob.glob(os.path.join(self.defualt_download, stereo))
     print(f'Find {len(bag)} of dummy files in {root}.')
     for b in bag:
       print('\tremove -> ' + b)
@@ -57,7 +59,8 @@ class Kyobo:
       fold_menu.send_keys(Keys.ENTER)
 
       mainpages = '#tabAnbCategoryKyobo > div.anb_category_inner > div > div.tab_list_wrap > ul > li'
-      mainpages = driver.find_elements(By.CSS_SELECTOR, mainpages)
+      mainpages = driver.find_elements(By.CLASS_NAME, 'tab_link')
+      # mainpage_urls = {mp.text.replace('/', '+'): mp.get_attribute('href') for mp in driver.find_elements(By.CLASS_NAME, 'tab_link ui-tabs-anchor')}
 
       for mainpage in mainpages:
         time.sleep(1) # wait
@@ -102,6 +105,11 @@ class Kyobo:
               _, extension = os.path.splitext(downed[0])
               shutil.copy(downed[0], os.path.join(self.download_path, f'{main_name}_{subpage_name}_{detail_name}' + extension))
               os.remove(downed[0])
+            
+            break
+          break
+        break
+      
     else:
       raise AssertionError
 
