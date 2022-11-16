@@ -71,11 +71,11 @@ class Kyobo:
       
         subpages = '#tabAnbCategorySub01 > div.custom_scroll_wrap.active > div.simplebar-wrapper > div.simplebar-mask > div > div > div > div > div.category_view_area > div > div:nth-child(1) > ul > li.fold_box.expanded > div.fold_box_contents > ul > li'
         subpages = driver.find_elements(By.CSS_SELECTOR, subpages)
-
-        for subpage in subpages:
+        subpage_urls = {sub.text.replace('/', '+'): sub.get_attribute('href') for sub in driver.find_elements(By.CLASS_NAME, 'category_link')}
+        
+        for subpage_name, subpage_url in subpage_urls.items():
           time.sleep(1) # wait
-          subpage_name = subpage.text
-          subpage_url = subpage.find_element(By.TAG_NAME, 'a').get_attribute('href')
+          # subpage_url = subpage.find_element(By.TAG_NAME, 'a').get_attribute('href')
           driver.get(subpage_url)
           time.sleep(3) # wait
 
@@ -101,6 +101,7 @@ class Kyobo:
             if downed:
               _, extension = os.path.splitext(downed[0])
               shutil.copy(downed[0], os.path.join(self.download_path, f'{main_name}_{subpage_name}_{detail_name}' + extension))
+              os.remove(downed[0])
     else:
       raise AssertionError
 
