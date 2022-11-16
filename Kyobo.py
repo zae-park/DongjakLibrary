@@ -26,7 +26,7 @@ class Kyobo:
       root = self.defualt_download
     if stereo is None:
       stereo = '상품목록*.xlsx'
-    bag = glob.glob(os.path.join(self.defualt_download, stereo))
+    bag = glob.glob(os.path.join(root, stereo))
     print(f'Find {len(bag)} of dummy files in {root}.')
     for b in bag:
       print('\tremove -> ' + b)
@@ -105,14 +105,73 @@ class Kyobo:
               _, extension = os.path.splitext(downed[0])
               shutil.copy(downed[0], os.path.join(self.download_path, f'{main_name}_{subpage_name}_{detail_name}' + extension))
               os.remove(downed[0])
-            
-            break
-          break
-        break
-      
     else:
       raise AssertionError
 
+  def download_csv2(self):
+    # Top categories
+    driver = webdriver.Chrome(f'./{self.chrome_ver}/chromedriver.exe', options=self.sele_options)
+    
+    for sup_name in ['국내도서', '서양도서']:
+      
+      driver.get(self.domain)
+      time.sleep(2) # wait
+      
+      fold_menu = '#welcome_header_wrap > div.header_inner > nav > div.anb_wrap > button'
+      fold_menu = driver.find_element(By.CSS_SELECTOR, fold_menu)
+      fold_menu.send_keys(Keys.ENTER)
+      time.sleep(2) # wait
+
+      supcategories = driver.find_element(By.ID, 'tabAnbCategoryKyobo')
+      supcategories = supcategories.find_elements(By.CLASS_NAME, 'tab_item')
+      supcategory = None
+      for sup in supcategories:
+        if sup.text == sup_name:
+          supcategory = sup
+      supcategory.send_keys(Keys.ENTER)
+      time.sleep(2) # wait
+      
+      fold_btn = '#tabAnbCategorySub01 > div.custom_scroll_wrap > div.simplebar-wrapper > div.simplebar-mask > div > div > div > div > div.category_view_area > div > div:nth-child(1) > ul > li:nth-child(1) > div.fold_box_header > button'
+      fold_btn = driver.find_element(By.CSS_SELECTOR, fold_btn)
+      fold_btn.send_keys(Keys.ENTER)
+      
+      time.sleep(2) # wait
+    
+      subpage_urls = {sub.text.replace('/', '+'): sub.get_attribute('href') for sub in driver.find_elements(By.CLASS_NAME, 'category_link')}
+      
+      for subpage_name, subpage_url in subpage_urls.items():
+        time.sleep(1) # wait
+        # subpage_url = subpage.find_element(By.TAG_NAME, 'a').get_attribute('href')
+        driver.get(subpage_url)
+        time.sleep(3) # wait
+
+
+        detail_urls = {u.text.replace('/', '+'): u.get_attribute('href') for u in driver.find_elements(By.CLASS_NAME, 'snb_link')}
+
+        for detail_name, detail_url in detail_urls.items():
+          driver.get(detail_url)
+          time.sleep(3) # wait
+
+          selector = '#homeTabAll > div.list_result_wrap > div.right_area > div:nth-child(2) > button'
+          element = driver.find_element(By.CSS_SELECTOR, selector)
+          
+          print(f'\tCrawl... {sup_name} - {subpage_name} - {detail_name}')
+
+          excel_btn = '#homeTabAll > div.list_result_wrap > div.right_area > div:nth-child(2) > button'
+          excel_btn = driver.find_element(By.CSS_SELECTOR, excel_btn)
+          excel_btn.click()
+          time.sleep(3)  # Waiting for download.
+          
+          downed = glob.glob(os.path.join(self.defualt_download, '상품목록*.xlsx'))
+          if downed:
+            _, extension = os.path.splitext(downed[0])
+            shutil.copy(downed[0], os.path.join(self.download_path, f'{sup_name}_{subpage_name}_{detail_name}' + extension))
+            os.remove(downed[0])
+          
+          break
+        break
+
+  
   def get_books(self):
     # Initial setting.
     self.set_selenium_option()
