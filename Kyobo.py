@@ -54,10 +54,70 @@ class Kyobo:
     print(f'Collect {len(subpages_dict)} subpages...')
     self.subpages_dict = subpages_dict
 
+  def click_to_detail(self):
+    # Top categories
+    domain = 'https://product.kyobobook.co.kr/'
+    
+    driver = webdriver.Chrome(f'./{self.chrome_ver}/chromedriver.exe', options=self.sele_options)
+    driver.get(domain)
+
+    detail_dict = {}
+    if not driver.get_issue_message():
+      fold_menu = '#welcome_header_wrap > div.header_inner > nav > div.anb_wrap > button'
+      fold_menu = driver.find_element(By.CSS_SELECTOR, fold_menu)
+      fold_menu.send_keys(Keys.ENTER)
+
+      mainpages = '#tabAnbCategoryKyobo > div.anb_category_inner > div > div.tab_list_wrap > ul > li'
+      mainpages = driver.find_elements(By.CSS_SELECTOR, mainpages)
+
+      for mainpage in mainpages:
+        main_name = mainpage.text
+        mainpage.send_keys(Keys.ENTER)
+
+        fold_btn = '#tabAnbCategorySub01 > div.custom_scroll_wrap > div.simplebar-wrapper > div.simplebar-mask > div > div > div > div > div.category_view_area > div > div:nth-child(1) > ul > li:nth-child(1) > div.fold_box_header > button'
+        fold_btn = driver.find_element(By.CSS_SELECTOR, fold_btn)
+        fold_btn.send_keys(Keys.ENTER)
+      
+        subpages = '#tabAnbCategorySub01 > div.custom_scroll_wrap.active > div.simplebar-wrapper > div.simplebar-mask > div > div > div > div > div.category_view_area > div > div:nth-child(1) > ul > li.fold_box.expanded > div.fold_box_contents > ul > li'
+        subpages = driver.find_elements(By.CSS_SELECTOR, subpages)
+
+        for subpage in subpages:
+          subpage_name = subpage.text
+          subpage_url = subpage.find_element(By.TAG_NAME, 'a').get_attribute('href')
+          driver.get(subpage_url)
+          time.sleep(3) # wait
+
+          details = '#contents > div > aside > div.aside_body > div.snb_wrap > ul > li'
+          details = driver.find_elements(By.CSS_SELECTOR, details)
+
+          for detail in details:
+            detail_name = detail.text
+            detail_url = detail.find_element(By.TAG_NAME, 'a').get_attribute('href')
+            driver.get(detail_url)
+            # detail.send_keys(Keys.ENTER)
+            time.sleep(3) # wait
+
+            selector = '#homeTabAll > div.list_result_wrap > div.right_area > div:nth-child(2) > button'
+            element = driver.find_element(By.CSS_SELECTOR, selector)
+            # element = driver.find_element_by_xpath('//*[@id="homeTabAll"]/div[2]/div[2]/div[2]/button')
+            # -------------------------------------------------------------------------------------------------------------------
+            
+            print(f'\tCrawl... {main_name} - {subpage_name} - {detail_name}')
+            try:
+              btn = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="homeTabAll"]/div[2]/div[2]/div[2]/button')))
+              btn.click()
+            except Exception as e:
+              print("error: ", e)
+              
+            time.sleep(10)  # Waiting for download.
+    else:
+      raise AssertionError
+
   def get_books(self):
     # Initial setting.
     self.set_selenium_option()
     self.check_chrome_version()
+    self.click_to_detail()
     
     # init browser
     driver = webdriver.Chrome(f'./{self.chrome_ver}/chromedriver.exe', options=self.sele_options)
