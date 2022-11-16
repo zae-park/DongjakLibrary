@@ -2,3 +2,4 @@ __pycache__/
 .upm/
 107/
 *.exe
+*.xlsx
