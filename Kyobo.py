@@ -118,12 +118,6 @@ class Kyobo:
 
 if __name__ == '__main__':
   Kyobo().get_books()
-  
-  res = get_suboptions()
-  for k, v in res.items():
-    tabs = get_books(v)
-    break
-  
   print('done')
   
   
