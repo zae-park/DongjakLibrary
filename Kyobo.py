@@ -19,12 +19,14 @@ class Kyobo:
     self.defualt_download = os.path.join(os.path.expanduser('~'), 'downloads')
     self.download_path = download_path
     self.check_dummy_file()
-    self.check_dummy_file(self.download_path) if os.path.isdir(self.download_path) else os.mkdir(self.download_path)
+    self.check_dummy_file(self.download_path, '*.xlsx') if os.path.isdir(self.download_path) else os.mkdir(self.download_path)
 
-  def check_dummy_file(self, root: str = None):
+  def check_dummy_file(self, root: str = None, stereo: str = None):
     if root is None:
       root = self.defualt_download
-    bag = glob.glob(os.path.join(self.defualt_download, '상품목록*.xlsx'))
+    if stereo is None:
+      stereo = '상품목록*.xlsx'
+    bag = glob.glob(os.path.join(root, stereo))
     print(f'Find {len(bag)} of dummy files in {root}.')
     for b in bag:
       print('\tremove -> ' + b)
@@ -57,7 +59,8 @@ class Kyobo:
       fold_menu.send_keys(Keys.ENTER)
 
       mainpages = '#tabAnbCategoryKyobo > div.anb_category_inner > div > div.tab_list_wrap > ul > li'
-      mainpages = driver.find_elements(By.CSS_SELECTOR, mainpages)
+      mainpages = driver.find_elements(By.CLASS_NAME, 'tab_link')
+      # mainpage_urls = {mp.text.replace('/', '+'): mp.get_attribute('href') for mp in driver.find_elements(By.CLASS_NAME, 'tab_link ui-tabs-anchor')}
 
       for mainpage in mainpages:
         time.sleep(1) # wait
@@ -105,11 +108,100 @@ class Kyobo:
     else:
       raise AssertionError
 
+  def download_csv2(self):
+    # Top categories
+    driver = webdriver.Chrome(f'./{self.chrome_ver}/chromedriver.exe', options=self.sele_options)
+    
+    for i_sup, sup_name in enumerate(['국내도서', '서양도서']):
+      driver.get(self.domain)
+      time.sleep(2) # wait
+      
+      fold_menu = '#welcome_header_wrap > div.header_inner > nav > div.anb_wrap > button'
+      fold_menu = driver.find_element(By.CSS_SELECTOR, fold_menu)
+      fold_menu.send_keys(Keys.ENTER)
+      time.sleep(2) # wait
+
+      supcategories = driver.find_element(By.ID, 'tabAnbCategoryKyobo')
+      supcategories = supcategories.find_elements(By.CLASS_NAME, 'tab_item')
+      supcategory = None
+      for sup in supcategories:
+        if sup.text == sup_name:
+          supcategory = sup
+          break
+      supcategory.send_keys(Keys.ENTER)
+      time.sleep(2) # wait
+      
+      fold_btn = f'#tabAnbCategorySub{i_sup+1:02d} > div.custom_scroll_wrap > div.simplebar-wrapper > div.simplebar-mask > div > div > div > div > div.category_view_area > div > div:nth-child(1) > ul > li:nth-child(1) > div.fold_box_header > button'
+      fold_btn = driver.find_element(By.CSS_SELECTOR, fold_btn)
+      fold_btn.send_keys(Keys.ENTER)
+      
+      time.sleep(2) # wait
+
+      sub_url = f'#tabAnbCategorySub{i_sup+1:02d} > div.custom_scroll_wrap.active > div.simplebar-wrapper > div.simplebar-mask > div > div > div > div > div.category_view_area > div > div:nth-child(1) > ul > li.fold_box.expanded > div.fold_box_contents > ul > li'
+      subpage_urls = {sub.text.replace('/', '+'): sub.find_element(By.TAG_NAME, 'a').get_attribute('href') for sub in driver.find_elements(By.CSS_SELECTOR, sub_url)}
+      # subpage_urls = {sub.text.replace('/', '+'): sub.get_attribute('href') for sub in driver.find_elements(By.CLASS_NAME, 'category_link')}
+      
+      for subpage_name, subpage_url in subpage_urls.items():
+        time.sleep(1) # wait
+        # subpage_url = subpage.find_element(By.TAG_NAME, 'a').get_attribute('href')
+        driver.get(subpage_url)
+        time.sleep(3) # wait
+
+
+        detail_urls = {u.text.replace('/', '+'): u.get_attribute('href') for u in driver.find_elements(By.CLASS_NAME, 'snb_link')}
+
+        if detail_urls:
+          for detail_name, detail_url in detail_urls.items():
+            driver.get(detail_url)
+            time.sleep(3) # wait
+
+            tabs = '#contents > div > div.tab_list_wrap > ul > li'
+            tabs = driver.find_elements(By.CSS_SELECTOR, tabs)
+            
+            for ii, t in enumerate(tabs):
+              tab_tag = t.find_element(By.TAG_NAME, 'a').get_attribute('href').split('#')[-1]
+              tab_name = t.text
+              t.click()
+              time.sleep(2)
+              
+              excel_btn = f'#{tab_tag} > div.list_result_wrap > div.right_area > div:nth-child(2) > button'
+              excel_btn = driver.find_element(By.CSS_SELECTOR, excel_btn)
+              print(f'\tCrawl... {sup_name} - {subpage_name} - {detail_name} - {tab_name}')
+              excel_btn.click()
+              time.sleep(3)  # Waiting for download.
+              
+              downed = glob.glob(os.path.join(self.defualt_download, '상품목록*.xlsx'))
+              if downed:
+                _, extension = os.path.splitext(downed[0])
+                shutil.copy(downed[0], os.path.join(self.download_path, f'{sup_name}_{subpage_name}_{detail_name}_{tab_name}' + extension))
+                os.remove(downed[0])
+        else:
+          tabs = '#contents > div > div.tab_list_wrap > ul > li'
+          tabs = driver.find_elements(By.CSS_SELECTOR, tabs)
+          
+          for ii, t in enumerate(tabs):
+            tab_tag = t.find_element(By.TAG_NAME, 'a').get_attribute('href').split('#')[-1]
+            tab_name = t.text
+            t.click()
+            time.sleep(2)
+            
+            excel_btn = f'#{tab_tag} > div.list_result_wrap > div.right_area > div:nth-child(2) > button'
+            excel_btn = driver.find_element(By.CSS_SELECTOR, excel_btn)
+            print(f'\tCrawl... {sup_name} - {subpage_name} - {tab_name}')
+            excel_btn.click()
+            time.sleep(3)  # Waiting for download.
+            
+            downed = glob.glob(os.path.join(self.defualt_download, '상품목록*.xlsx'))
+            if downed:
+              _, extension = os.path.splitext(downed[0])
+              shutil.copy(downed[0], os.path.join(self.download_path, f'{sup_name}_{subpage_name}_{tab_name}' + extension))
+              os.remove(downed[0])
+  
   def get_books(self):
     # Initial setting.
     self.set_selenium_option()
     self.check_chrome_version()
-    self.download_csv()
+    self.download_csv2()
   
   @classmethod
   def get_reviews():
