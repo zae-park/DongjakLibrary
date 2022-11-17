@@ -173,7 +173,7 @@ class Kyobo:
               downed = glob.glob(os.path.join(self.defualt_download, '상품목록*.xlsx'))
               if downed:
                 _, extension = os.path.splitext(downed[0])
-                shutil.copy(downed[0], os.path.join(self.download_path, f'{sup_name}_{subpage_name}_{detail_name} - {tab_name}' + extension))
+                shutil.copy(downed[0], os.path.join(self.download_path, f'{sup_name}_{subpage_name}_{detail_name}_{tab_name}' + extension))
                 os.remove(downed[0])
         else:
           tabs = '#contents > div > div.tab_list_wrap > ul > li'
@@ -187,14 +187,14 @@ class Kyobo:
             
             excel_btn = f'#{tab_tag} > div.list_result_wrap > div.right_area > div:nth-child(2) > button'
             excel_btn = driver.find_element(By.CSS_SELECTOR, excel_btn)
-            print(f'\tCrawl... {sup_name} - {subpage_name} - {detail_name} - {tab_name}')
+            print(f'\tCrawl... {sup_name} - {subpage_name} - {tab_name}')
             excel_btn.click()
             time.sleep(3)  # Waiting for download.
             
             downed = glob.glob(os.path.join(self.defualt_download, '상품목록*.xlsx'))
             if downed:
               _, extension = os.path.splitext(downed[0])
-              shutil.copy(downed[0], os.path.join(self.download_path, f'{sup_name}_{subpage_name}_{detail_name} - {tab_name}' + extension))
+              shutil.copy(downed[0], os.path.join(self.download_path, f'{sup_name}_{subpage_name}_{tab_name}' + extension))
               os.remove(downed[0])
   
   def get_books(self):
