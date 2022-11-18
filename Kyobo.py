@@ -131,23 +131,27 @@ class Kyobo:
       supcategory.send_keys(Keys.ENTER)
       time.sleep(2) # wait
       
-      fold_btn = f'#tabAnbCategorySub{i_sup+1:02d} > div.custom_scroll_wrap > div.simplebar-wrapper > div.simplebar-mask > div > div > div > div > div.category_view_area > div > div:nth-child(1) > ul > li:nth-child(1) > div.fold_box_header > button'
-      fold_btn = driver.find_element(By.CSS_SELECTOR, fold_btn)
-      fold_btn.send_keys(Keys.ENTER)
+      view_area = f'#tabAnbCategorySub{i_sup+1:02d} > div.custom_scroll_wrap > div.simplebar-wrapper > div.simplebar-mask > div > div > div > div > div.category_view_area'
+      view_area = driver.find_element(By.CSS_SELECTOR, view_area)
       
-      time.sleep(2) # wait
-
-      sub_url = f'#tabAnbCategorySub{i_sup+1:02d} > div.custom_scroll_wrap.active > div.simplebar-wrapper > div.simplebar-mask > div > div > div > div > div.category_view_area > div > div:nth-child(1) > ul > li.fold_box.expanded > div.fold_box_contents > ul > li'
-      subpage_urls = {sub.text.replace('/', '+'): sub.find_element(By.TAG_NAME, 'a').get_attribute('href') for sub in driver.find_elements(By.CSS_SELECTOR, sub_url)}
-      # subpage_urls = {sub.text.replace('/', '+'): sub.get_attribute('href') for sub in driver.find_elements(By.CLASS_NAME, 'category_link')}
+      subpage_dict = {}
+      for area in view_area.find_elements(By.CLASS_NAME, 'fold_box'):
+        btn = area.find_element(By.CLASS_NAME, 'btn_fold')
+        btn.send_keys(Keys.ENTER)
+        time.sleep(2) # wait
+        
+        subpage = driver.find_element(By.CLASS_NAME, 'fold_box.expanded')
+        subpage_name = subpage.find_element(By.CLASS_NAME, 'fold_box_header').text
+        details = subpage.find_elements(By.CLASS_NAME, 'category_item')
+        for detail in details:
+          subpage_dict[f"{subpage_name.replace('/', '+')}_{detail.text}"] = detail.find_element(By.TAG_NAME, 'a').get_attribute('href')
       
-      for subpage_name, subpage_url in subpage_urls.items():
+      for subpage_name, subpage_url in subpage_dict.items():
         time.sleep(1) # wait
         # subpage_url = subpage.find_element(By.TAG_NAME, 'a').get_attribute('href')
         driver.get(subpage_url)
         time.sleep(3) # wait
 
-        # TODO: get detail pages from every subpage
         detail_urls = {u.text.replace('/', '+'): u.get_attribute('href') for u in driver.find_elements(By.CLASS_NAME, 'snb_link')}
 
         if detail_urls:
