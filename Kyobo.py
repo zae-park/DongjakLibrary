@@ -147,7 +147,7 @@ class Kyobo:
         driver.get(subpage_url)
         time.sleep(3) # wait
 
-
+        # TODO: get detail pages from every subpage
         detail_urls = {u.text.replace('/', '+'): u.get_attribute('href') for u in driver.find_elements(By.CLASS_NAME, 'snb_link')}
 
         if detail_urls:
