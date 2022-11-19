@@ -170,8 +170,15 @@ class Kyobo:
               
               excel_btn = f'#{tab_tag} > div.list_result_wrap > div.right_area > div:nth-child(2) > button'
               excel_btn = driver.find_element(By.CSS_SELECTOR, excel_btn)
-              print(f'\tCrawl... {sup_name} - {subpage_name} - {detail_name} - {tab_name}')
-              excel_btn.click()
+              try:
+                print(f'\tCrawl... {sup_name} - {subpage_name} - {detail_name} - {tab_name}')
+                excel_btn.click()
+              except:
+                try:
+                  time.sleep(2)
+                  excel_btn.click()
+                except:
+                    pass
               time.sleep(5)  # Waiting for download.
               
               downed = glob.glob(os.path.join(self.defualt_download, '상품목록*.xlsx'))
