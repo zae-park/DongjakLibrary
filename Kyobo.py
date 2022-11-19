@@ -144,7 +144,7 @@ class Kyobo:
         subpage_name = subpage.find_element(By.CLASS_NAME, 'fold_box_header').text.replace('/', '+')
         details = subpage.find_elements(By.CLASS_NAME, 'category_item')
         for detail in details:
-          subpage_dict[f"{subpage_name.replace('/', '+')}_{detail.text}"] = detail.find_element(By.TAG_NAME, 'a').get_attribute('href')
+          subpage_dict[f"{subpage_name}_{detail.text}".replace('/', '+')] = detail.find_element(By.TAG_NAME, 'a').get_attribute('href')
       
       for subpage_name, subpage_url in subpage_dict.items():
         time.sleep(1) # wait
