@@ -141,7 +141,7 @@ class Kyobo:
         time.sleep(2) # wait
         
         subpage = driver.find_element(By.CLASS_NAME, 'fold_box.expanded')
-        subpage_name = subpage.find_element(By.CLASS_NAME, 'fold_box_header').text
+        subpage_name = subpage.find_element(By.CLASS_NAME, 'fold_box_header').text.replace('/', '+')
         details = subpage.find_elements(By.CLASS_NAME, 'category_item')
         for detail in details:
           subpage_dict[f"{subpage_name.replace('/', '+')}_{detail.text}"] = detail.find_element(By.TAG_NAME, 'a').get_attribute('href')
@@ -172,7 +172,7 @@ class Kyobo:
               excel_btn = driver.find_element(By.CSS_SELECTOR, excel_btn)
               print(f'\tCrawl... {sup_name} - {subpage_name} - {detail_name} - {tab_name}')
               excel_btn.click()
-              time.sleep(3)  # Waiting for download.
+              time.sleep(5)  # Waiting for download.
               
               downed = glob.glob(os.path.join(self.defualt_download, '상품목록*.xlsx'))
               if downed:
