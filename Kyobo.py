@@ -20,6 +20,7 @@ class Kyobo:
     self.download_path = download_path
     self.check_dummy_file()
     self.check_dummy_file(self.download_path, '*.xlsx') if os.path.isdir(self.download_path) else os.mkdir(self.download_path)
+    self.driver = None
 
   def check_dummy_file(self, root: str = None, stereo: str = None):
     if root is None:
@@ -168,24 +169,13 @@ class Kyobo:
               t.click()
               time.sleep(2)
               
+              print(f'\tCrawl... {sup_name} - {subpage_name} - {detail_name} - {tab_name}')
               excel_btn = f'#{tab_tag} > div.list_result_wrap > div.right_area > div:nth-child(2) > button'
               excel_btn = driver.find_element(By.CSS_SELECTOR, excel_btn)
-              try:
-                print(f'\tCrawl... {sup_name} - {subpage_name} - {detail_name} - {tab_name}')
-                excel_btn.click()
-              except:
-                try:
-                  time.sleep(2)
-                  excel_btn.click()
-                except:
-                    pass
-              time.sleep(5)  # Waiting for download.
-              
-              downed = glob.glob(os.path.join(self.defualt_download, '상품목록*.xlsx'))
-              if downed:
-                _, extension = os.path.splitext(downed[0])
-                shutil.copy(downed[0], os.path.join(self.download_path, f'{sup_name}_{subpage_name}_{detail_name}_{tab_name}' + extension))
-                os.remove(downed[0])
+              excel_btn.click()
+              time.sleep(3)  # Waiting for download.
+              self.replace_xlsx(dst=f'{sup_name}_{subpage_name}_{detail_name}_{tab_name}')
+        
         else:
           tabs = '#contents > div > div.tab_list_wrap > ul > li'
           tabs = driver.find_elements(By.CSS_SELECTOR, tabs)
@@ -195,23 +185,40 @@ class Kyobo:
             tab_name = t.text
             t.click()
             time.sleep(2)
-            
+
+            print(f'\tCrawl... {sup_name} - {subpage_name} - {tab_name}')
             excel_btn = f'#{tab_tag} > div.list_result_wrap > div.right_area > div:nth-child(2) > button'
             excel_btn = driver.find_element(By.CSS_SELECTOR, excel_btn)
-            print(f'\tCrawl... {sup_name} - {subpage_name} - {tab_name}')
             excel_btn.click()
             time.sleep(3)  # Waiting for download.
-            
-            downed = glob.glob(os.path.join(self.defualt_download, '상품목록*.xlsx'))
-            if downed:
-              _, extension = os.path.splitext(downed[0])
-              shutil.copy(downed[0], os.path.join(self.download_path, f'{sup_name}_{subpage_name}_{tab_name}' + extension))
-              os.remove(downed[0])
+            self.replace_xlsx(dst=f'{sup_name}_{subpage_name}_{tab_name}')
   
+  def click_btn(self, button):
+    excel_btn = self.driver.find_element(By.CSS_SELECTOR, excel_btn)
+
+    try:
+      excel_btn.click()
+    except:
+      try:
+        time.sleep(2)
+        excel_btn.click()
+      except:
+          pass
+    time.sleep(5)  # Waiting for download.
+
+  def replace_xlsx(self, dst):
+    downed = glob.glob(os.path.join(self.defualt_download, '상품목록*.xlsx'))
+    if downed:
+      _, extension = os.path.splitext(downed[0])
+      shutil.copy(downed[0], os.path.join(self.download_path, dst))
+      os.remove(downed[0])
+
   def get_books(self):
     # Initial setting.
     self.set_selenium_option()
     self.check_chrome_version()
+    self.driver = webdriver.Chrome(f'./{self.chrome_ver}/chromedriver.exe', options=self.sele_options)
+
     self.download_csv2()
   
   @classmethod
