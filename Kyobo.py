@@ -327,8 +327,9 @@ class Kyobo:
 
 
 if __name__ == '__main__':
-  Kyobo().get_reviews(True)
-  Kyobo().get_books()
+  Kyobo().get_reviews()
+  # Kyobo().get_reviews(True) # debug mode
+  # Kyobo().get_books()
   print('done')
   
   
