@@ -233,8 +233,6 @@ class Kyobo:
             
             # Loop - books
             for book_name, book_url in books.items():
-              if book_url == 'https://product.kyobobook.co.kr/detail/S000001851601':
-                print(1)
               self.driver.get(book_url)
               
               try:
