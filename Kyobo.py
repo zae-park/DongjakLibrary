@@ -233,8 +233,15 @@ class Kyobo:
             
             # Loop - books
             for book_name, book_url in books.items():
+              if book_url == 'https://product.kyobobook.co.kr/detail/S000001851601':
+                print(1)
               self.driver.get(book_url)
-              self.click_btn(self.driver.find_element(By.CLASS_NAME, 'btn_go_review'))
+              
+              try:
+                btn_review = self.driver.find_element(By.CLASS_NAME, 'btn_go_review')
+              except NoSuchElementException:
+                break
+              self.click_btn(btn_review)
               score = self.driver.find_element(By.CSS_SELECTOR, '#ReviewList1 > div.klover_review_box > div.klover_box_left > div.box_top > div > div.caption > span > span.val')
               score = float(score.text)
               
@@ -278,7 +285,11 @@ class Kyobo:
           # Loop - books
           for book_name, book_url in books.items():
             self.driver.get(book_url)
-            self.click_btn(self.driver.find_element(By.CLASS_NAME, 'btn_go_review'))
+            try:
+              btn_review = self.driver.find_element(By.CLASS_NAME, 'btn_go_review')
+            except NoSuchElementException:
+              break
+            self.click_btn(btn_review)
             score = self.driver.find_element(By.CSS_SELECTOR, '#ReviewList1 > div.klover_review_box > div.klover_box_left > div.box_top > div > div.caption > span > span.val')
             score = float(score.text)
             
