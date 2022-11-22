@@ -293,7 +293,8 @@ class Kyobo:
         # Save csv
         with open(os.path.join(self.download_path, f'{save_name}.csv'), 'w',newline='\n') as f:
             writer = csv.writer(f)
-            writer.writerow(csv_list)
+            for row in csv_list:
+              writer.writerow(row)
     
   def click_btn(self, button):
     try:
