@@ -202,9 +202,7 @@ class Kyobo:
             time.sleep(3) # wait
             
             # Click review tab
-            review_tab = self.driver.find_element(By.CSS_SELECTOR, '#ui-id-44')
-            review_tab.click()
-            time.sleep(2)
+            self.click_btn(self.driver.find_element(By.CSS_SELECTOR, '#ui-id-44'))
             
             # Get # of pages & get all book info.
             try:
@@ -251,9 +249,7 @@ class Kyobo:
           save_name = f'{sup_name}_{subpage_name}_{sub_detail_name}'
           
           # Click review tab
-          review_tab = self.driver.find_element(By.CSS_SELECTOR, '#ui-id-44')
-          review_tab.click()
-          time.sleep(2)
+          self.click_btn(self.driver.find_element(By.CSS_SELECTOR, '#ui-id-44'))
           
           # Get # of pages & get all book info.
           try:
