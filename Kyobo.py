@@ -238,7 +238,7 @@ class Kyobo:
               try:
                 btn_review = self.driver.find_element(By.CLASS_NAME, 'btn_go_review')
               except NoSuchElementException:
-                break
+                continue
               self.click_btn(btn_review)
               score = self.driver.find_element(By.CSS_SELECTOR, '#ReviewList1 > div.klover_review_box > div.klover_box_left > div.box_top > div > div.caption > span > span.val')
               score = float(score.text)
@@ -286,7 +286,7 @@ class Kyobo:
             try:
               btn_review = self.driver.find_element(By.CLASS_NAME, 'btn_go_review')
             except NoSuchElementException:
-              break
+              continue
             self.click_btn(btn_review)
             score = self.driver.find_element(By.CSS_SELECTOR, '#ReviewList1 > div.klover_review_box > div.klover_box_left > div.box_top > div > div.caption > span > span.val')
             score = float(score.text)
